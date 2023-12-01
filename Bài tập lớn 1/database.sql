@@ -1,6 +1,3 @@
-
-
---Create table
 --Create table
 CREATE TABLE  BRANCHES(
     BRANCH_ID VARCHAR2(10) PRIMARY KEY,
