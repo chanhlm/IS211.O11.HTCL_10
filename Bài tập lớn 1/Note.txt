@@ -1,0 +1,42 @@
+-- Mất dữ liệu cập nhập (Lost Update)
+-- Thao tác đọc không thể lặp lại (Unrepeatable Data)	
+-- Deadlock
+-- Vấn đề bóng ma (Phantom)
+
+
+--Chào cô và các bạn, hôm nay em sẽ đại diện nhóm 10 trình bày demo về các vấn đề trong seminar chương 6: giao tác và điều khiển đồng thời phân tán với các vấn đề sau....
+Trong sql developer có cung cấp chức năng tạo 2 cửa sổ độc lập. Bên trái được gọi là session A hay Máy 1, và bên phải là session B hay Máy 2.
+
+--Đầu tiên, chúng ta sẽ demo về vấn đề mất dữ liệu cập nhập (Lost Update)
+Chúng ta sẽ thực hiện kiểm tra mức cô lập ở 2 máy
+Như đã thấy thì ở 2 máy đều là mức cô lập READ COMMITTED mặc định.
+Vấn đề mất dữ liệu sẽ xảy ra khi cả 2 máy cùng cập nhập cho 1 dữ liệu. Khi đó máy thực hiện commit sau sẽ ghi dè lên dữ liệu của máy trước, gây mất dữ liệu đã cập nhập.
+	Ví dụ ở M1 chúng ta sẽ thực hiện cập nhập balance=10000 cho account_id=7715 và balance=20000 cho account_id=7715. Lần lượt thực hiện commit ở máy 1 và máy 2. Chúng ta thực hiện select để kiểm tra. Như vậy dữ liệu đã cập nhập ở máy 1 đã bị ghi đè bởi dữ liệu của máy 2. Đây là vấn đề mất dữ liệu cập nhập Lost Update.
+	
+	Giải pháp khắc phục cho vấn đề này là cài đặt mức cô lập cho máy là SERIALIZABLE;
+	Ta thực hiện tập nhập lại giá trị ở máy 1 là 15000 và máy 2 là 30000. Khi thực hiện lần lượt COMMIT thì khi thực hiện COMMIT ở máy 1 thì máy 2 sẽ ngay lập tức báo lỗi vì máy 2 đã được cài đặt SERIALIZABLE;
+
+--tiếp theo là vấn đề Thao tác đọc không thể lặp lại (Unrepeatable Data)	
+ Tạo thời điểm t0, máy 1 thực hiện select bảng account, nhưng thời điểm t2 máy 2 thực hiện update dữ liệu balance = 5000 cho account_id = 7715
+	Tại thời điểm t3. máy 1 truy vấn lại bảng account thì thấy dữ liệu đã bị thay đổi nhưng không phải do mình đã làm .
+	Cách khắc phục là set mức cô lập SERIALIZABLE.
+	Chúng ta thực hiện lại thao tác ở thời điểm t3 để kiểm tra. ở đây chúng ta sẽ cập nhập balance cho account_id 7715 là 10000.
+	Chúng ta thực hiện truy vấn lại ở máy 1. Ta có thể thấy là giá trị balance không đổi.
+	ta thực hiện commit và truy vấn lại, như vậy dữ liệu đã được cập nhập
+
+-- Tiếp theo là vấn đề deadlock
+Tại thời điểm t1, máy 1 thực hiện cập nhập balance cho account_id=7715 
+		  máy 2 thực hiện cập nhập balance cho account_id=7720
+		  máy 1 thực hiện cập nhập balance cho account_id=7720
+		  máy 2 thực hiện cập nhập balance cho account_id=7715
+	Deadlock đã xảy ra. oracle có tính năng tự phát hiện deadlock là xử lí deadlock
+	Thực hiện commit để thoát khoải deadlock
+	Chúng ta truy vấn lại để xem kết quả, thì ta thấy được dữ liệu cập nhập bên máy không có thông báo deadlock đã được cập nhập
+
+-- Cuối cùng là demo về phantom read
+ Khi máy 1 đang đọc dữ liệu từ customer thì máy 2 thực hiện insert dữ liệu vào và commit.
+	Thực hiện truy vấn ở máy 1 ở kiểm tra thì thấy có 1 dòng dữ liệu không phải do máy mình update vào. thì đây là dữ liệu ma.
+	Để giải quyết sẽ set mức cô lập SERIALIZABLE cho 2 máy.
+	ta thực hiện lại bước trên.
+	ta thấy thì khi select dữ liệu lần 2 thì không thấy có dữ liệu ma xuất hiện vì đã được cài SERIALIZABLE.
+	ta thực hiện commit ở máy 1 và select lại. Thì đã xuất hiện dữ liệu vừa được insert ở máy 2 .
