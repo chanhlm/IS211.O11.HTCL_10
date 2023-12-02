@@ -18,5 +18,5 @@ STT | MSSV | Họ tên
 4 | 19521528 | Đào Huy Hoàng
 
 
-BTL1: nộp ngày 31/12/2023
-BTL2: nộp ngày 24/12/2023, online, báo cáo ngày 6/1 (chưa chốt)
+* BTL1: nộp ngày 31/12/2023
+* BTL2: nộp ngày 24/12/2023, online, báo cáo ngày 6/1 (chưa chốt)
