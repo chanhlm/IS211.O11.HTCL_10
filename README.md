@@ -1,5 +1,5 @@
 # IS211.O11.HTCL - Distributed Database System
-
+https://github.com/chanhlm/IS211.O11.HTCL_10
 
 ## Thông tin môn học
 * **Môn học:** Cơ sở dữ liệu phân tán
