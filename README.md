@@ -4,7 +4,7 @@ https://github.com/chanhlm/IS211.O11.HTCL_10
 ## Thông tin môn học
 * **Môn học:** Cơ sở dữ liệu phân tán
 * **Lớp:** IS211.O11.HTCL
-* **Năm học:** HKI NH 2021-2022
+* **Năm học:** HKI NH 2022-2023
 * **Giảng viên:** 
   * ThS. Thái Bảo Trân
   * CN. Nguyễn Minh Nhựt
@@ -16,3 +16,7 @@ STT | MSSV | Họ tên
 2 | 21520596 | Trần Thị Kim Anh
 3 | 21521586 | Lê Thị Lệ Trúc
 4 | 19521528 | Đào Huy Hoàng
+
+
+* BTL1: nộp ngày 31/12/2023
+* BTL2: nộp ngày 24/12/2023, online, báo cáo ngày 6/1 (chưa chốt)
