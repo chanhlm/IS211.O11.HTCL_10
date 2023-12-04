@@ -189,27 +189,26 @@ INSERT INTO  EMPLOYEES VALUES ('NV19', 'Nguyen Thi Thuy Ha', '036628823', TO_DAT
 INSERT INTO  EMPLOYEES VALUES ('NV20', 'Nguyen Tien Thanh', '0358475477', TO_DATE('02-02-1992', 'DD-MM-YYYY'),'Nam', 'Quan 7, TP.HCM', 12400000, 'CN2');
 INSERT INTO  EMPLOYEES VALUES ('NV21', 'Nguyen Hai Tung', '0315781111', TO_DATE('03-03-1993', 'DD-MM-YYYY'),'Nam', 'Quan 8, TP.HCM', 11100000, 'CN2');
 
-
 INSERT INTO PRODUCTS VALUES   ('P1',  'Tivi LED 4K 55 inch', 12000000, 'Tivi LED 4K 55 inch, Smart TV', 'Tivi', 24);
-INSERT INTO PRODUCTS VALUES   ('P2',  'Máy Lạnh Inverter 1.5HP', 8500000, 'Máy lạnh Inverter công nghệ mới', 'Điện lạnh', 36);
-INSERT INTO PRODUCTS VALUES   ('P3',  'Tủ Lạnh Side by Side', 18000000, 'Tủ lạnh Side by Side, dung tích 600L', 'Điện lạnh', 24);
-INSERT INTO PRODUCTS VALUES   ('P4',  'Máy Giặt Front Load 8kg', 9500000, 'Máy giặt công suất lớn, tiết kiệm năng lượng', 'Gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P5',  'Bếp Điện Từ 2 Bếp', 3500000, 'Bếp điện từ 2 bếp, chống trào ngược', 'Bếp', 18);
-INSERT INTO PRODUCTS VALUES   ('P6',  'Quạt Điện Cột', 800000, 'Quạt cột, 3 tốc độ', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P7',  'Máy Xay Cà Phê', 1200000, 'Máy xay cà phê chuyên nghiệp', 'Pha cà phê', 12);
-INSERT INTO PRODUCTS VALUES   ('P8',  'Lò Nướng Điện 32L', 2800000, 'Lò nướng điện dung tích lớn', 'Bếp', 24);
-INSERT INTO PRODUCTS VALUES   ('P9',  'Máy Hút Bụi Robot', 3500000, 'Máy hút bụi tự động, thông minh', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P10', 'Máy Pha Cà Phê Espresso', 5500000, 'Máy pha cà phê espresso chuyên nghiệp', 'Pha cà phê', 18);
-INSERT INTO PRODUCTS VALUES   ('P11', 'Điều Hòa Inverter 2HP', 10500000, 'Điều hòa Inverter công nghệ mới', 'Điện lạnh', 36);
-INSERT INTO PRODUCTS VALUES   ('P12', 'Bình Đun Nước Siêu Tốc', 350000, 'Bình đun nước siêu tốc, tự động tắt khi sôi', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P13', 'Máy Ép Trái Cây', 2200000, 'Máy ép trái cây chất lượng cao', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P14', 'Tủ Sấy Quần Áo', 2000000, 'Tủ sấy quần áo, công nghệ làm khô nhanh', 'Điện gia dụng', 24);
-INSERT INTO PRODUCTS VALUES   ('P15', 'Bàn Là Hơi Nước', 1200000, 'Bàn là hơi nước chất lượng cao', 'Gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P16', 'Đèn LED Trang Trí', 500000, 'Đèn LED trang trí nhiều màu sắc', 'Đèn', 12);
-INSERT INTO PRODUCTS VALUES   ('P17', 'Loa Bluetooth Di Động', 800000, 'Loa Bluetooth di động, âm thanh sống động', 'Âm thanh', 12);
-INSERT INTO PRODUCTS VALUES   ('P18', 'Máy Sấy Tóc Ion', 450000, 'Máy sấy tóc ion, bảo vệ tóc khỏi hư tổn', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P19', 'Ổ Cắm Điện Thông Minh', 250000, 'Ổ cắm điện thông minh, điều khiển từ xa', 'Điện gia dụng', 12);
-INSERT INTO PRODUCTS VALUES   ('P20', 'Quạt Đứng Cao Cấp', 1200000, 'Quạt đứng cao cấp, chế độ gió tự nhiên', 'Điện gia dụng', 24);
+INSERT INTO PRODUCTS VALUES   ('P2',  'May Lanh Inverter 1.5HP', 8500000, 'May lanh Inverter cong nghe moi', 'Dien lanh', 36);
+INSERT INTO PRODUCTS VALUES   ('P3',  'Tu Lanh Side by Side', 18000000, 'Tu lanh Side by Side, dung tich 600L', 'Dien lanh', 24);
+INSERT INTO PRODUCTS VALUES   ('P4',  'May Giat Front Load 8kg', 9500000, 'May giat cong suat lon, tiet kiem nang luong', 'Gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P5',  'Bep Dien Tu 2 Bep', 3500000, 'Bep dien tu 2 bep, chong trao nguoc', 'Bep', 18);
+INSERT INTO PRODUCTS VALUES   ('P6',  'Quat Dien Cot', 800000, 'Quat cot, 3 toc do', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P7',  'May Xay Ca Phe', 1200000, 'May xay ca phe chuyen nghiep', 'Pha ca phe', 12);
+INSERT INTO PRODUCTS VALUES   ('P8',  'Lo Nuong Dien 32L', 2800000, 'Lo nuong dien dung tich lon', 'Bep', 24);
+INSERT INTO PRODUCTS VALUES   ('P9',  'May Hut Bui Robot', 3500000, 'May hut bui tu dong, thong minh', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P10', 'May Pha Ca Phe Espresso', 5500000, 'May pha ca phe espresso chuyen nghiep', 'Pha ca phe', 18);
+INSERT INTO PRODUCTS VALUES   ('P11', 'Dieu Hoa Inverter 2HP', 10500000, 'Dieu hoa Inverter cong nghe moi', 'Dien lanh', 36);
+INSERT INTO PRODUCTS VALUES   ('P12', 'Binh Dun Nuoc Sieu Toc', 350000, 'Binh dun nuoc sieu toc, tu dong tat khi soi', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P13', 'May Ep Trai Cay', 2200000, 'May ep trai cay chat luong cao', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P14', 'Tu Say Quan Ao', 2000000, 'Tu say quan ao, cong nghe lam kho nhanh', 'Dien gia dung', 24);
+INSERT INTO PRODUCTS VALUES   ('P15', 'Ban La Hoi Nuoc', 1200000, 'Ban la hoi nuoc chat luong cao', 'Gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P16', 'Den LED Trang Tri', 500000, 'Den LED trang tri nhieu mau sac', 'Den', 12);
+INSERT INTO PRODUCTS VALUES   ('P17', 'Loa Bluetooth Di Dong', 800000, 'Loa Bluetooth di dong, am thanh song dong', 'Am thanh', 12);
+INSERT INTO PRODUCTS VALUES   ('P18', 'May Say Toc Ion', 450000, 'May say toc ion, bao ve toc khoi hu ton', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P19', 'O Cam Dien Thong Minh', 250000, 'O cam dien thong minh, dieu khien tu xa', 'Dien gia dung', 12);
+INSERT INTO PRODUCTS VALUES   ('P20', 'Quat Dung Cao Cap', 1200000, 'Quat dung cao cap, che do gio tu nhien', 'Dien gia dung', 24);
 
 INSERT INTO  WAREHOUSE_MANAGER VALUES ('CN1','P1' , TO_DATE('15-01-2023', 'DD-MM-YYYY'), 500, TO_DATE('01-01-2022', 'DD-MM-YYYY'));
 INSERT INTO  WAREHOUSE_MANAGER VALUES ('CN1','P2' , TO_DATE('20-02-2023', 'DD-MM-YYYY'), 300, TO_DATE('01-02-2022', 'DD-MM-YYYY'));
