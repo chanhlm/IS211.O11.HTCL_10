@@ -19,4 +19,4 @@ STT | MSSV | Họ tên
 
 
 * BTL1: nộp ngày 31/12/2023
-* BTL2: nộp ngày 24/12/2023, online, báo cáo ngày 6/1 (chưa chốt)
+* BTL2: nộp ngày 01/01/2024, online, báo cáo ngày 13/01/2024
