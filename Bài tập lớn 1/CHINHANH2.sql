@@ -508,11 +508,40 @@ FROM CHINHANH1.ORDERS@DIRECTOR_LINK O
 GROUP BY O.BRANCH_ID;
 
 -- Yêu cầu 2: Viết hàm, thủ tục, ràng buộc toàn vẹn truy vấn trên môi trường phân tán mức độ phức tạp nhiều xử lý
-    -- 2.1. Procedure 
+    -- 2.1. Procedure / Function
+    -- Giám đốc có thể thay đổi lương của nhân viên
+CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID VARCHAR2 ,sal NUMBER) AS dem NUMBER;
+BEGIN
+    SELECT COUNT(Emp1.EMP_ID) INTO dem
+    FROM CHINHANH2.EMPLOYEES Emp1
+    WHERE Emp1.EMP_ID = empID;
     
-    -- 2.2. Function
+    IF (dem > 0) THEN
+        UPDATE EMPLOYEES
+        SET EMP_SALARY = sal
+        WHERE EMP_ID = empID;
+    ELSE
+        SELECT COUNT(Emp2.EMP_ID) INTO dem
+        FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK Emp2
+        WHERE Emp2.EMP_ID = empID;
+        IF (dem > 0) THEN
+            UPDATE CHINHANH1.EMPLOYEES@DIRECTOR_LINK
+            SET EMP_SALARY = sal
+            WHERE EMP_ID = empID;
+        END IF;
+    END IF;
 
-    -- 2.3. Trigger
+    COMMIT;
+END;
+/
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH2.EMPLOYEES WHERE E.EMP_ID = 'NV110';
+/
+EXECUTE changeEmployeeSalary('NV110', 1000000); -- Tăng lương 1 triệu
+/
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH2.EMPLOYEES
+WHERE E.EMP_ID = 'NV110';
+
+    -- 2.2. Trigger
 
 
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
