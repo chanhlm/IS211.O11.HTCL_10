@@ -564,8 +564,34 @@ EXECUTE changeEmployeeSalary('NV110', 1000000); -- Tăng lương 1 triệu
 SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES
 WHERE E.EMP_ID = 'NV110';
 
-    -- 2.2. Trigger
+    -- 2.2. Trigger - DB có sử dụng 3 trigger nhưng chỉ trình bày 1 trigger
+    -- Khi có thay đổi trong chi tiết hóa đơn thì tính lại tổng tiền cho hóa đơn
+CREATE OR REPLACE TRIGGER UPDATE_TOTAL_PRICE
+BEFORE INSERT OR UPDATE OR DELETE ON CHINHANH1.ORDER_DETAILS
+FOR EACH ROW
+DECLARE
+    v_total_price NUMBER;
+BEGIN
+    -- Tính tổng tiền cho order hiện tại
+    SELECT NVL(SUM(QUANTITY * PRICE), 0) INTO v_total_price
+    FROM CHINHANH1.ORDER_DETAILS
+    WHERE ORDER_ID = :NEW.ORDER_ID;
 
+    -- Cập nhật tổng tiền vào bảng ORDERS
+    IF INSERTING THEN
+        UPDATE CHINHANH1.ORDERS
+        SET TOTAL_PRICE = v_total_price + :NEW.PRICE* :NEW.QUANTITY
+        WHERE ORDER_ID = :NEW.ORDER_ID;
+    ELSIF UPDATING THEN
+        UPDATE CHINHANH1.ORDERS
+        SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY + :NEW.PRICE*:NEW.QUANTITY
+        WHERE ORDER_ID = :NEW.ORDER_ID;
+    ELSE
+        UPDATE CHINHANH1.ORDERS
+        SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY
+        WHERE ORDER_ID = :NEW.ORDER_ID;
+    END IF;
+END;
 
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
     -- 3.1. 
