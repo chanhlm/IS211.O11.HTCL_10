@@ -495,28 +495,28 @@ FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK E2
 WHERE E2.BRANCH_ID = 'CN2'
 GROUP BY E2.BRANCH_ID;
 
-        -- In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh
+        -- In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh (sai, lấy 4 lận, sort rồi nhma hiện ra sai)
         -- User: Warehourse Manager
         -- Phạm vi: tại cửa hàng làm việc
-SELECT P.PRODUCT_ID, P.PRODUCT_NAME, SUM(TOTAL_QUANTITY) AS TOTAL_QUANTITY
+SELECT PRODUCT_ID, PRODUCT_NAME, SUM(TOTAL_QUANTITY) AS TOTAL_QUANTITY
 FROM (
-    SELECT WM.PRODUCT_ID, PRODUCT_NAME, SUM(WM.QUANTITY) AS TOTAL_QUANTITY
+    (SELECT WM.PRODUCT_ID, PRODUCT_NAME, SUM(WM.QUANTITY) AS TOTAL_QUANTITY
     FROM CHINHANH1.WAREHOUSE_MANAGER WM
     INNER JOIN CHINHANH1.PRODUCTS P ON WM.PRODUCT_ID = P.PRODUCT_ID
     GROUP BY WM.PRODUCT_ID, PRODUCT_NAME
     HAVING SUM(WM.QUANTITY) > 0
     ORDER BY WM.PRODUCT_ID 
-    FETCH FIRST 3 ROWS ONLY
+    FETCH FIRST 3 ROWS ONLY)
     UNION ALL
-    SELECT WM.PRODUCT_ID, PRODUCT_NAME, SUM(WM.QUANTITY) AS TOTAL_QUANTITY
+    (SELECT WM.PRODUCT_ID, PRODUCT_NAME, SUM(WM.QUANTITY) AS TOTAL_QUANTITY
     FROM CHINHANH2.WAREHOUSE_MANAGER@WAREHOUSE_MANAGER_LINK WM
     INNER JOIN CHINHANH2.PRODUCTS@WAREHOUSE_MANAGER_LINK P ON WM.PRODUCT_ID = P.PRODUCT_ID
     GROUP BY WM.PRODUCT_ID, PRODUCT_NAME
     HAVING SUM(WM.QUANTITY) > 0
     ORDER BY WM.PRODUCT_ID
-    FETCH FIRST 3 ROWS ONLY;
+    FETCH FIRST 3 ROWS ONLY)
 )
-GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME;
+GROUP BY PRODUCT_ID, PRODUCT_NAME;
 
     -- 1.7. Tính toán: Tính tổng doanh thu của 2 chi nhánh
     -- User: DIRECTOR
@@ -529,7 +529,7 @@ SELECT O.BRANCH_ID, SUM(O.TOTAL_PRICE) AS TOTAL_PRICE
 FROM CHINHANH2.ORDERS@DIRECTOR_LINK O
 GROUP BY O.BRANCH_ID;
 
--- Yêu cầu 2: Viết hàm, thủ tục, ràng buộc toàn vẹn truy vấn trên môi trường phân tán mức độ phức tạp nhiều xử lý
+-- Yêu cầu 2: Viết hàm, thủ tục, ràng buộc toàn vẹn truy vấn trên môi trường phân tán mức độ phức tạp nhiều xử lý (lỗi tạo)
     -- 2.1. Procedure / Function
     -- Giám đốc có thể thay đổi lương của nhân viên
 CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID VARCHAR2 ,sal NUMBER) AS dem NUMBER;
@@ -556,7 +556,7 @@ BEGIN
     COMMIT;
 END;
 /
-SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES WHERE E.EMP_ID = 'NV110';
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES E WHERE E.EMP_ID = 'NV110';
 /
 EXECUTE changeEmployeeSalary('NV110', 1000000); -- Tăng lương 1 triệu
 /
