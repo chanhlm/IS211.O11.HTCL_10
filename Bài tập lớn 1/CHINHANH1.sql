@@ -387,7 +387,7 @@ DROP TABLE CHINHANH1.BRANCHES CASCADE CONSTRAINTS;
 --------------------- Query
 -- Yêu cầu 1: Thực hiện 10 câu truy vấn nhiều dạng
     -- 1.1. 5 câu truy vấn cơ bản
-        --Liệt kê danh sách các sản phẩm ở CN1 có khách hàng đặt hàng từ ngày 05/01/2023 đến nay và số lượng tồn kho > 0
+        -- Liệt kê danh sách các sản phẩm ở CN1 có khách hàng đặt hàng từ ngày 05/01/2023 đến nay và số lượng tồn kho > 0
         -- User : Employee
         -- Phạm vi: tại cửa hàng làm việc
 SELECT DISTINCT P.PRODUCT_ID, P.PRODUCT_NAME, WM.QUANTITY, O.ORDER_DATE
