@@ -285,6 +285,8 @@ INSERT INTO  CHINHANH1.ORDERS VALUES (17, 'KH117', TO_DATE('17-01-2023', 'DD-MM-
 INSERT INTO  CHINHANH1.ORDERS VALUES (18, 'KH118', TO_DATE('18-01-2023', 'DD-MM-YYYY'), 'CN1', 'NV118', 0);
 INSERT INTO  CHINHANH1.ORDERS VALUES (19, 'KH119', TO_DATE('19-01-2023', 'DD-MM-YYYY'), 'CN1', 'NV119', 0);
 INSERT INTO  CHINHANH1.ORDERS VALUES (20, 'KH113', TO_DATE('20-10-2023', 'DD-MM-YYYY'), 'CN1', 'NV120', 0);
+INSERT INTO  CHINHANH1.ORDERS VALUES (21, 'KH214', TO_DATE('21-01-2023', 'DD-MM-YYYY'), 'CN1', 'NV121', 0);
+INSERT INTO  CHINHANH1.ORDERS VALUES (22, 'KH206', TO_DATE('22-01-2023', 'DD-MM-YYYY'), 'CN1', 'NV122', 0);
 
 -- Dữ liệu cho bảng CHINHANH1.ORDER_DETAILS
 INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (1, 'P1', 5, 0);
@@ -327,6 +329,8 @@ INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (19, 'P17', 4, 0);
 INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (19, 'P18', 2, 0);
 INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (20, 'P3', 2, 0);
 INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (20, 'P1', 2, 0);
+INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (21, 'P1', 1, 0);
+INSERT INTO  CHINHANH1.ORDER_DETAILS VALUES (22, 'P1', 1, 0);
 
 ------------------- Create user
 CREATE USER DIRECTOR IDENTIFIED BY DIRECTOR;
@@ -417,7 +421,7 @@ GROUP BY O.CUS_ID, C.CUS_NAME
 ORDER BY TOTAL DESC;
 
     -- 1.2. Phép hội
-    -- Liệt kê sản phẩm được bán nhiều nhất ở 2 chi nhánh
+    -- Liệt kê sản phẩm được bán nhiều nhất ở 2 chi nhánh 1 và chi nhánh 2
     -- User : Director
     -- Phạm vi: toàn hệ thống
 SELECT P.PRODUCT_ID, P.PRODUCT_NAME
@@ -495,7 +499,7 @@ FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK E2
 WHERE E2.BRANCH_ID = 'CN2'
 GROUP BY E2.BRANCH_ID;
 
-        -- In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh (sai, lấy 4 lận, sort rồi nhma hiện ra sai)
+        -- In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh
         -- User: Warehourse Manager
         -- Phạm vi: tại cửa hàng làm việc
 SELECT PRODUCT_ID, PRODUCT_NAME, SUM(TOTAL_QUANTITY) AS TOTAL_QUANTITY
@@ -516,7 +520,9 @@ FROM (
     ORDER BY WM.PRODUCT_ID
     FETCH FIRST 3 ROWS ONLY)
 )
-GROUP BY PRODUCT_ID, PRODUCT_NAME;
+GROUP BY PRODUCT_ID, PRODUCT_NAME
+ORDER BY TOTAL_QUANTITY DESC
+FETCH FIRST 3 ROWS ONLY;
 
     -- 1.7. Tính toán: Tính tổng doanh thu của 2 chi nhánh
     -- User: DIRECTOR
@@ -532,28 +538,33 @@ GROUP BY O.BRANCH_ID;
 -- Yêu cầu 2: Viết hàm, thủ tục, ràng buộc toàn vẹn truy vấn trên môi trường phân tán mức độ phức tạp nhiều xử lý (lỗi tạo)
     -- 2.1. Procedure / Function
     -- Giám đốc có thể thay đổi lương của nhân viên
-CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID VARCHAR2 ,sal NUMBER) AS dem NUMBER;
+set serveroutput on;
+CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID CHINHANH1.EMPLOYEES.EMP_ID%TYPE, sal NUMBER) AS
+  dem NUMBER;
 BEGIN
-    SELECT COUNT(Emp1.EMP_ID) INTO dem
-    FROM CHINHANH1.EMPLOYEES Emp1
-    WHERE Emp1.EMP_ID = empID;
-    
-    IF (dem > 0) THEN
-        UPDATE EMPLOYEES
-        SET EMP_SALARY = sal
-        WHERE EMP_ID = empID;
-    ELSE
-        SELECT COUNT(Emp2.EMP_ID) INTO dem
-        FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK Emp2
-        WHERE Emp2.EMP_ID = empID;
-        IF (dem > 0) THEN
-            UPDATE CHINHANH2.EMPLOYEES@DIRECTOR_LINK
-            SET EMP_SALARY = sal
-            WHERE EMP_ID = empID;
-        END IF;
-    END IF;
+  SELECT COUNT(*) INTO dem
+  FROM CHINHANH1.EMPLOYEES Emp1
+  WHERE Emp1.EMP_ID = empID;
 
-    COMMIT;
+  IF (dem > 0) THEN
+    UPDATE CHINHANH1.EMPLOYEES Emp1
+    SET Emp1.EMP_SALARY = sal
+    WHERE Emp1.EMP_ID = empID;
+
+  ELSE
+    SELECT COUNT(*) INTO dem
+    FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK Emp2
+    WHERE Emp2.EMP_ID = empID;
+
+    IF (dem > 0) THEN
+      UPDATE CHINHANH2.EMPLOYEES@DIRECTOR_LINK Emp2
+      SET EMP_SALARY = sal
+      WHERE emp2.EMP_ID = empID;
+    ELSE
+      DBMS_OUTPUT.PUT_LINE('Employee not found in any branch.');
+    END IF;
+  END IF;
+  COMMIT;
 END;
 /
 SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES E WHERE E.EMP_ID = 'NV110';
@@ -592,21 +603,13 @@ BEGIN
     END IF;
 END;
 
--- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
-    -- 3.1. 
-
-    -- 3.2. 
-
-    -- 3.3. 
-
-    -- 3.4. 
-
+-- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết 
+    -- Trong file báo cáo
 
 -- Yêu cầu 4: Thực hiện tối ưu hóa truy vấn trên môi trường phân tán 1 câu truy vấn đơn giản
     -- 4.1. Đề xuất 
 
     -- 4.2. Tối ưu 
-
 
 -- Yêu cầu 5 & 6 : Option bonus  
 
