@@ -538,7 +538,7 @@ GROUP BY O.BRANCH_ID;
 -- Yêu cầu 2: Viết hàm, thủ tục, ràng buộc toàn vẹn truy vấn trên môi trường phân tán mức độ phức tạp nhiều xử lý (lỗi tạo)
     -- 2.1. Procedure / Function
     -- Giám đốc có thể thay đổi lương của nhân viên
-set serveroutput on;
+SET serveroutput on;
 CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID CHINHANH1.EMPLOYEES.EMP_ID%TYPE, sal NUMBER) AS
   dem NUMBER;
 BEGIN
@@ -608,8 +608,109 @@ END;
 
 -- Yêu cầu 4: Thực hiện tối ưu hóa truy vấn trên môi trường phân tán 1 câu truy vấn đơn giản
     -- 4.1. Đề xuất 
+SELECT 	DISTINCT P.PRODUCT_ID, PRODUCT_NAME, PRODUCT_STATUS
+FROM 	CHINHANH1.PRODUCTS P, CHINHANH1.WAREHOUSE_SALER WS, CHINHANH1.ORDERS O,
+  	CHINHANH1.ORDER_DETAILS OD, CHINHANH1.BRANCHES B
+WHERE 	B.BRANCH_ID = WS.BRANCH_ID
+AND		WS.PRODUCT_ID = P.PRODUCT_ID
+AND		P.PRODUCT_ID = OD.PRODUCT_ID
+AND		OD.ORDER_ID = O.ORDER_ID
+AND		B.BRANCH_NAME = 'Chi nhanh 1'
+AND 		EXTRACT (YEAR FROM ORDER_DATE) = 2023
+AND 		EXTRACT (MONTH FROM ORDER_DATE) = 10
+AND 		QUANTITY > 2;
 
-    -- 4.2. Tối ưu 
+    -- 4.2. Explain
+SELECT 	/*+ GATHER_PLAN_STATISTICS*/ DISTINCT
+P.PRODUCT_ID, PRODUCT_NAME, PRODUCT_STATUS
+FROM PRODUCTS P, WAREHOUSE_SALER WS, ORDERS O,ORDER_DETAILS OD, BRANCHES B
+WHERE 	B.BRANCH_ID = WS.BRANCH_ID
+AND		WS.PRODUCT_ID = P.PRODUCT_ID
+AND		P.PRODUCT_ID = OD.PRODUCT_ID
+AND		OD.ORDER_ID = O.ORDER_ID
+AND		B.BRANCH_NAME = 'Chi nhanh 1'
+AND 		EXTRACT (YEAR FROM ORDER_DATE) = 2023
+AND 		EXTRACT (MONTH FROM ORDER_DATE) = 10
+AND 		QUANTITY > 2;
+SELECT		*
+FROM		TABLE (DBMS_XPLAN.display_cursor (format =>'ALLSTATS LAST'));
+
+    -- 4.3. Tối ưu tên môi trường phân tán
+SELECT DISTINCT PRODUCT_ID, PRODUCT_NAME,PRODUCT_STATUS
+FROM
+    ((
+        SELECT BRANCH_ID, E.PRODUCT_ID, PRODUCT_NAME, PRODUCT_STATUS
+        FROM
+            ((
+                SELECT C.PRODUCT_ID, PRODUCT_NAME
+                FROM
+                    ((
+                        SELECT PRODUCT_ID
+                        FROM
+                            ((
+                                SELECT ORDER_ID
+                                FROM CHINHANH1.ORDERS
+                                WHERE EXTRACT (YEAR FROM ORDER_DATE) = 2023
+                                    AND EXTRACT (MONTH FROM ORDER_DATE) = 10
+                            ) A INNER JOIN (
+                                SELECT ORDER_ID,PRODUCT_ID
+                                FROM CHINHANH1.ORDER_DETAILS
+                                WHERE QUANTITY > 2
+                            ) B ON A.ORDER_ID = B.ORDER_ID)
+                    ) C INNER JOIN (
+                        SELECT PRODUCT_ID,PRODUCT_NAME
+                        FROM CHINHANH1.PRODUCTS
+                    ) D ON C.PRODUCT_ID = D.PRODUCT_ID)
+            ) E INNER JOIN (
+                SELECT BRANCH_ID, PRODUCT_ID, PRODUCT_STATUS
+                FROM CHINHANH1.WAREHOUSE_SALER
+            ) F ON E.PRODUCT_ID = F.PRODUCT_ID)
+    ) G INNER JOIN (
+        SELECT BRANCH_ID
+        FROM CHINHANH1.BRANCHES
+        WHERE BRANCH_NAME = 'Chi nhanh 1'
+    ) H ON G.BRANCH_ID = H.BRANCH_ID)
+;
+
+    -- 4.4. Explain trên môi trường phân tán
+SELECT /*+ GATHER_PLAN_STATISTICS */ 
+    DISTINCT PRODUCT_ID, PRODUCT_NAME, PRODUCT_STATUS
+FROM
+    ((
+        SELECT BRANCH_ID, E.PRODUCT_ID, PRODUCT_NAME, PRODUCT_STATUS
+        FROM
+            ((
+                SELECT C.PRODUCT_ID, PRODUCT_NAME
+                FROM
+                    ((
+                        SELECT PRODUCT_ID
+                        FROM
+                            ((
+                                SELECT ORDER_ID
+                                FROM CHINHANH1.ORDERS
+                                WHERE EXTRACT(YEAR FROM ORDER_DATE) = 2023
+                                   AND EXTRACT(MONTH FROM ORDER_DATE) = 10
+                            ) A INNER JOIN (
+                                SELECT ORDER_ID, PRODUCT_ID
+                                FROM CHINHANH1.ORDER_DETAILS
+                                WHERE QUANTITY > 2
+                            ) B ON A.ORDER_ID = B.ORDER_ID)
+                    ) C INNER JOIN (
+                        SELECT PRODUCT_ID, PRODUCT_NAME
+                        FROM CHINHANH1.PRODUCTS
+                    ) D ON C.PRODUCT_ID = D.PRODUCT_ID)
+            ) E INNER JOIN (
+                SELECT BRANCH_ID, PRODUCT_ID, PRODUCT_STATUS
+                FROM CHINHANH1.WAREHOUSE_SALER
+            ) F ON E.PRODUCT_ID = F.PRODUCT_ID)
+    ) G INNER JOIN (
+        SELECT BRANCH_ID
+        FROM CHINHANH1.BRANCHES
+        WHERE BRANCH_NAME = 'Chi nhanh 1  '
+    ) H ON G.BRANCH_ID = H.BRANCH_ID);
+SELECT *
+ FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
+
 
 -- Yêu cầu 5 & 6 : Option bonus  
 
