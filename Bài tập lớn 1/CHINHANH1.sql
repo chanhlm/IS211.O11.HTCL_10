@@ -570,7 +570,7 @@ END;
 /
 SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES E WHERE E.EMP_ID = 'NV110';
 /
-EXECUTE changeEmployeeSalary('NV110', 1000000); -- Tăng lương 1 triệu
+EXECUTE changeEmployeeSalary('NV110', 1000000); 
 /
 SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES
 WHERE E.EMP_ID = 'NV110';
@@ -603,6 +603,14 @@ BEGIN
         WHERE ORDER_ID = :NEW.ORDER_ID;
     END IF;
 END;
+
+select * from chinhanh1.orders;
+
+UPDATE CHINHANH1.ORDER_DETAILS
+SET QUANTITY = 10
+WHERE ORDER_ID = 1 AND PRODUCT_ID = 'P1';
+
+select * from chinhanh1.orders;
 
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết 
     -- Trong file báo cáo

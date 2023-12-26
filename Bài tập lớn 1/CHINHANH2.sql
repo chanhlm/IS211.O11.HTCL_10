@@ -519,7 +519,7 @@ GROUP BY O.BRANCH_ID;
     -- 2.1. Procedure / Function
     -- Giám đốc có thể thay đổi lương của nhân viên
 set serveroutput on;
-CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID CHINHANH1.EMPLOYEES.EMP_ID%TYPE, sal NUMBER) AS
+CREATE OR REPLACE PROCEDURE changeEmployeeSalary (empID CHINHANH2.EMPLOYEES.EMP_ID%TYPE, sal NUMBER) AS
   dem NUMBER;
 BEGIN
   SELECT COUNT(*) INTO dem
@@ -547,11 +547,11 @@ BEGIN
   COMMIT;
 END;
 /
-SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
 /
-EXECUTE changeEmployeeSalary('NV111', 1000000); -- Tăng lương 1 triệu
+EXECUTE changeEmployeeSalary('NV111', 1000000); 
 /
-SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH2.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
 
     -- 2.2. Trigger - DB có sử dụng 3 trigger nhưng chỉ trình bày 1 trigger
     -- Khi có thay đổi trong chi tiết hóa đơn thì tính lại tổng tiền cho hóa đơn
@@ -582,6 +582,14 @@ BEGIN
     END IF;
 END;
 
+select * from chinhanh2.orders;
+
+UPDATE CHINHANH1.ORDER_DETAILS
+SET QUANTITY = 10
+WHERE ORDER_ID = 11 AND PRODUCT_ID = 'P1';
+
+select * from chinhanh2.orders;
+
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
     -- Trong file báo cáo
 
@@ -594,7 +602,7 @@ WHERE 	B.BRANCH_ID = WS.BRANCH_ID
 AND		WS.PRODUCT_ID = P.PRODUCT_ID
 AND		P.PRODUCT_ID = OD.PRODUCT_ID
 AND		OD.ORDER_ID = O.ORDER_ID
-AND		B.BRANCH_NAME = 'Chi nhanh 1'
+AND		B.BRANCH_NAME = 'Chi nhanh '
 AND 		EXTRACT (YEAR FROM ORDER_DATE) = 2023
 AND 		EXTRACT (MONTH FROM ORDER_DATE) = 10
 AND 		QUANTITY > 2;
@@ -607,7 +615,7 @@ WHERE 	B.BRANCH_ID = WS.BRANCH_ID
 AND		WS.PRODUCT_ID = P.PRODUCT_ID
 AND		P.PRODUCT_ID = OD.PRODUCT_ID
 AND		OD.ORDER_ID = O.ORDER_ID
-AND		B.BRANCH_NAME = 'Chi nhanh 1'
+AND		B.BRANCH_NAME = 'Chi nhanh 2'
 AND 		EXTRACT (YEAR FROM ORDER_DATE) = 2023
 AND 		EXTRACT (MONTH FROM ORDER_DATE) = 10
 AND 		QUANTITY > 2;
@@ -647,7 +655,7 @@ FROM
     ) G INNER JOIN (
         SELECT BRANCH_ID
         FROM CHINHANH2.BRANCHES
-        WHERE BRANCH_NAME = 'Chi nhanh 1'
+        WHERE BRANCH_NAME = 'Chi nhanh 2'
     ) H ON G.BRANCH_ID = H.BRANCH_ID)
 ;
 
@@ -685,7 +693,7 @@ FROM
     ) G INNER JOIN (
         SELECT BRANCH_ID
         FROM CHINHANH2.BRANCHES
-        WHERE BRANCH_NAME = 'Chi nhanh 1'
+        WHERE BRANCH_NAME = 'Chi nhanh 2'
     ) H ON G.BRANCH_ID = H.BRANCH_ID);
 SELECT *
  FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
