@@ -118,6 +118,10 @@ BEGIN
     FROM CHINHANH2.ORDER_DETAILS
     WHERE ORDER_ID = :NEW.ORDER_ID;
 
+    SELECT NVL(SUM(QUANTITY * PRICE), 0) INTO old_v_total_price
+    FROM CHINHANH2.ORDER_DETAILS
+    WHERE ORDER_ID = :OLD.ORDER_ID;
+
     -- Cập nhật tổng tiền vào bảng ORDERS
     IF INSERTING THEN
         UPDATE CHINHANH2.ORDERS
@@ -125,8 +129,12 @@ BEGIN
         WHERE ORDER_ID = :NEW.ORDER_ID;
     ELSIF UPDATING THEN
         UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY + :NEW.PRICE*:NEW.QUANTITY
+        SET TOTAL_PRICE = v_total_price + :NEW.PRICE*:NEW.QUANTITY
         WHERE ORDER_ID = :NEW.ORDER_ID;
+
+        UPDATE CHINHANH2.ORDERS
+        SET TOTAL_PRICE = old_v_total_price - :OLD.PRICE* :OLD.QUANTITY
+        WHERE ORDER_ID = :OLD.ORDER_ID;
     ELSE
         UPDATE CHINHANH2.ORDERS
         SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY
@@ -370,8 +378,7 @@ DROP TABLE CHINHANH2.BRANCHES CASCADE CONSTRAINTS;
 
 --------------------- Query
 -- Yêu cầu 1: Thực hiện 10 câu truy vấn nhiều dạng
-    -- 1.1. câu truy vấn cơ bản
-        --Liệt kê danh sách các sản phẩm ở CN1 có khách hàng đặt hàng từ ngày 05/01/2023 đến nay và số lượng tồn kho > 0
+    -- 1.1. Liệt kê danh sách các sản phẩm ở CN1 có khách hàng đặt hàng từ ngày 05/01/2023 đến nay và số lượng tồn kho > 0
         -- User : Employee
         -- Phạm vi: tại cửa hàng làm việc
 SELECT DISTINCT P.PRODUCT_ID, P.PRODUCT_NAME, WM.QUANTITY, O.ORDER_DATE
@@ -381,7 +388,7 @@ INNER JOIN CHINHANH2.ORDERS O ON OD.ORDER_ID = O.ORDER_ID
 INNER JOIN CHINHANH2.WAREHOUSE_MANAGER WM ON P.PRODUCT_ID = WM.PRODUCT_ID
 WHERE O.ORDER_DATE >= TO_DATE('25-01-2023', 'DD-MM-YYYY') AND WM.QUANTITY > 0;
 
-        -- Cho biết thông tin sản phẩm(PID, PNAME, PRICE) có số lượng bán nhiều nhất và có giá bán lớn hơn 5000000
+    -- 1.2. Cho biết thông tin sản phẩm(PID, PNAME, PRICE) có số lượng bán nhiều nhất và có giá bán lớn hơn 5000000
         -- User : Employee
         -- Phạm vi: tại cửa hàng làm việc
 SELECT P.PRODUCT_ID, P.PRODUCT_NAME, P.PRODUCT_PRICE, SUM(OD.QUANTITY) AS TOTAL
@@ -391,7 +398,7 @@ GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME, P.PRODUCT_PRICE
 HAVING P.PRODUCT_PRICE > 5000000
 ORDER BY TOTAL DESC;
 
-        --In ra khách hàng có số lượng đơn hàng nhiều nhất 
+    -- 1.3. In ra khách hàng có số lượng đơn hàng nhiều nhất 
         -- User : Warehouse Manager
         -- Phạm vi: tại cửa hàng làm việc
 SELECT O.CUS_ID, C.CUS_NAME, COUNT(O.ORDER_ID) AS TOTAL
@@ -400,8 +407,7 @@ INNER JOIN CHINHANH2.CUSTOMERS C ON O.CUS_ID = C.CUS_ID
 GROUP BY O.CUS_ID, C.CUS_NAME
 ORDER BY TOTAL DESC;
 
-    -- 1.2. Phép hội
-    -- Liệt kê sản phẩm được bán nhiều nhất ở 2 chi nhánh
+    -- 1.4. Liệt kê sản phẩm được bán nhiều nhất ở 2 chi nhánh
     -- User : Director
     -- Phạm vi: toàn hệ thống
 SELECT P.PRODUCT_ID, P.PRODUCT_NAME
@@ -416,8 +422,7 @@ INNER JOIN CHINHANH1.ORDER_DETAILS@DIRECTOR_LINK OD ON P.PRODUCT_ID = OD.PRODUCT
 GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME
 HAVING SUM(OD.QUANTITY) = (SELECT MAX(SUM(OD.QUANTITY)) FROM CHINHANH1.ORDER_DETAILS@DIRECTOR_LINK OD GROUP BY OD.PRODUCT_ID);
 
-    -- 1.3. Phép giao
-    -- Liệt kê danh sách khách hàng mua sản phẩm P1 ở cả 2 chi nhánh
+    -- 1.5. Liệt kê danh sách khách hàng mua sản phẩm P1 ở cả 2 chi nhánh
     -- User : Employee
     -- Phạm vi: toàn hệ thống
 SELECT O.CUS_ID
@@ -430,8 +435,7 @@ FROM CHINHANH1.ORDER_DETAILS@EMPLOYEE_LINK OD
 JOIN CHINHANH1.ORDERS@EMPLOYEE_LINK O ON OD.ORDER_ID = O.ORDER_ID
 WHERE OD.PRODUCT_ID = 'P1' AND O.BRANCH_ID = 'CN1';
 
-    -- 1.4. Phép trừ
-    -- Liệt kê danh sách sản phẩm còn hàng ở chi nhánh 1 nhưng không còn hàng ở chi nhánh 2
+    -- 1.6. Liệt kê danh sách sản phẩm còn hàng ở chi nhánh 1 nhưng không còn hàng ở chi nhánh 2
     -- User : Warehouse Manager
     -- Phạm vi: toàn hệ thống
 SELECT P.PRODUCT_ID, P.PRODUCT_NAME
@@ -444,8 +448,7 @@ FROM CHINHANH1.PRODUCTS@WAREHOUSE_MANAGER_LINK P
 INNER JOIN CHINHANH1.WAREHOUSE_MANAGER@WAREHOUSE_MANAGER_LINK WM ON P.PRODUCT_ID = WM.PRODUCT_ID
 WHERE WM.QUANTITY > 0;
 
-    -- 1.5. Phép chia
-    -- Tìm khách hàng có giới tính nữ đã mua tất cả sản phẩm có giá trên 12.000.000VNĐ vào ngày 20/10
+    -- 1.7. Tìm khách hàng có giới tính nữ đã mua tất cả sản phẩm có giá trên 12.000.000VNĐ vào ngày 20/10
     -- User : Employee
     -- Phạm vi: tại cửa hàng làm việc
 SELECT DISTINCT C.CUS_ID, C.CUS_NAME
@@ -465,8 +468,7 @@ WHERE C.CUS_GENDER = 'Nu'
       )
   );
 
-    -- 1.6. Hàm gom nhóm : 
-        -- In ra danh sách số lượng nhân viên của 2 chi nhánh
+    -- 1.8. In ra danh sách số lượng nhân viên của 2 chi nhánh
         -- User : DIRECTOR
         -- Phạm vi: toàn hệ thống
 SELECT E1.BRANCH_ID AS MaCN, COUNT(E1.EMP_ID) AS SoLuongNhanVien
@@ -479,7 +481,7 @@ FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK E2
 WHERE E2.BRANCH_ID = 'CN1'
 GROUP BY E2.BRANCH_ID;
 
-        -- In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh
+    -- 1.9. In ra danh sách top 3 mã sản phẩm có số lượng tồn kho nhiều nhất cả 2 chi nhánh
         -- User: Warehourse Manager
         -- Phạm vi: tại cửa hàng làm việc
 SELECT PRODUCT_ID, PRODUCT_NAME, SUM(TOTAL_QUANTITY) AS TOTAL_QUANTITY
@@ -504,7 +506,7 @@ GROUP BY PRODUCT_ID, PRODUCT_NAME
 ORDER BY TOTAL_QUANTITY DESC
 FETCH FIRST 3 ROWS ONLY;
 
-    -- 1.7. Tính toán: Tính tổng doanh thu của 2 chi nhánh
+    -- 1.10. Tính tổng doanh thu của 2 chi nhánh
     -- User: DIRECTOR
     -- Phạm vi: toàn hệ thống
 SELECT O.BRANCH_ID, SUM(O.TOTAL_PRICE) AS TOTAL_PRICE
@@ -547,11 +549,11 @@ BEGIN
   COMMIT;
 END;
 /
-SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK E WHERE E.EMP_ID = 'NV111';
 /
 EXECUTE changeEmployeeSalary('NV111', 1000000); 
 /
-SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK WHERE E.EMP_ID = 'NV111';
+SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK E WHERE E.EMP_ID = 'NV111';
 
     -- 2.2. Trigger - DB có sử dụng 3 trigger nhưng chỉ trình bày 1 trigger
     -- Khi có thay đổi trong chi tiết hóa đơn thì tính lại tổng tiền cho hóa đơn
@@ -566,29 +568,38 @@ BEGIN
     FROM CHINHANH2.ORDER_DETAILS
     WHERE ORDER_ID = :NEW.ORDER_ID;
 
+    SELECT NVL(SUM(QUANTITY * PRICE), 0) INTO old_v_total_price
+    FROM CHINHANH2.ORDER_DETAILS
+    WHERE ORDER_ID = :OLD.ORDER_ID;
+
     -- Cập nhật tổng tiền vào bảng ORDERS
     IF INSERTING THEN
         UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price + :NEW.PRICE * :NEW.QUANTITY
+        SET TOTAL_PRICE = v_total_price + :NEW.PRICE* :NEW.QUANTITY
         WHERE ORDER_ID = :NEW.ORDER_ID;
     ELSIF UPDATING THEN
         UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price - :OLD.PRICE * :OLD.QUANTITY + :NEW.PRICE*:NEW.QUANTITY
+        SET TOTAL_PRICE = v_total_price + :NEW.PRICE*:NEW.QUANTITY
         WHERE ORDER_ID = :NEW.ORDER_ID;
+
+        UPDATE CHINHANH2.ORDERS
+        SET TOTAL_PRICE = old_v_total_price - :OLD.PRICE* :OLD.QUANTITY
+        WHERE ORDER_ID = :OLD.ORDER_ID;
     ELSE
         UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price - :OLD.PRICE * :OLD.QUANTITY
+        SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY
         WHERE ORDER_ID = :NEW.ORDER_ID;
     END IF;
 END;
+/
 
-select * from chinhanh2.orders;
+select * from chinhanh2.orders WHERE ORDER_ID = 11;
 
-UPDATE CHINHANH1.ORDER_DETAILS
+UPDATE CHINHANH2.ORDER_DETAILS
 SET QUANTITY = 10
 WHERE ORDER_ID = 11 AND PRODUCT_ID = 'P1';
 
-select * from chinhanh2.orders;
+select * from chinhanh2.orders WHERE ORDER_ID = 11;
 
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
     -- Trong file báo cáo
@@ -697,7 +708,4 @@ FROM
     ) H ON G.BRANCH_ID = H.BRANCH_ID);
 SELECT *
  FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
-
-
--- Yêu cầu 5 & 6 : Option bonus  
 
