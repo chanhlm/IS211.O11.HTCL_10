@@ -791,6 +791,37 @@ SELECT *
 FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
 
 
+    --Yêu cầu 5: Các đặc điểm mới của Oracle 21c và ứng dụng phân tán trong đặc điểm mới (Option Bonus +2.00)
+    --JSON trong Oracle 21c
+    ALTER TABLE CHINHANH1.ORDERS ADD DETAILS JSON;
 
+    UPDATE CHINHANH1.ORDERS O
+    SET O.DETAILS = (
+        SELECT JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'PRODUCT_ID'       VALUE OD.PRODUCT_ID,
+                'QUANTITY'         VALUE OD.QUANTITY,
+                'PRICE'            VALUE OD.PRICE
+            )
+        )
+        FROM CHINHANH1.ORDER_DETAILS OD
+        WHERE OD.ORDER_ID = O.ORDER_ID
+        GROUP BY OD.ORDER_ID
+    );
 
-
+    --Liệt kê sản phẩm bán chạy của 2 chi nhánh (Lmaf theo cách thường để so sánh kết quả)
+    SELECT P.PRODUCT_ID, P.PRODUCT_NAME
+    FROM CHINHANH1.PRODUCTS P
+    INNER JOIN CHINHANH1.ORDER_DETAILS OD ON P.PRODUCT_ID = OD.PRODUCT_ID
+    GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME
+    HAVING SUM(OD.QUANTITY) = (SELECT MAX(SUM(OD.QUANTITY)) 
+                                FROM CHINHANH1.ORDER_DETAILS OD 
+                                GROUP BY OD.PRODUCT_ID)
+    UNION ALL
+    SELECT P.PRODUCT_ID, P.PRODUCT_NAME FROM CHINHANH2.PRODUCTS@DIRECTOR_LINK P
+    INNER JOIN CHINHANH2.ORDER_DETAILS@DIRECTOR_LINK OD 
+    ON P.PRODUCT_ID = OD.PRODUCT_ID
+    GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME
+    HAVING SUM(OD.QUANTITY) = (SELECT MAX(SUM(OD.QUANTITY)) 
+                                FROM CHINHANH2.ORDER_DETAILS@DIRECTOR_LINK OD 
+                                GROUP BY OD.PRODUCT_ID);
