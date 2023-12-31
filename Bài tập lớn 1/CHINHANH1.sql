@@ -577,7 +577,7 @@ EXECUTE changeEmployeeSalary('NV110', 1000000);
 SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES E WHERE E.EMP_ID = 'NV110';
 
     -- 2.2. Trigger - DB có sử dụng 3 trigger nhưng chỉ trình bày 1 trigger
-    -- Khi có thay đổi trong chi tiết hóa đơn thì tính lại tổng tiền cho hóa đơn
+    -- Khi sản phẩm trong kho hàng ở chi nhánh này hết thì sẽ lấy sản phẩm ở chi nhánh còn lại
     -- Insert
 SET SERVEROUTPUT ON
 CREATE OR REPLACE TRIGGER INSERT_UPDATE_WAREHOUSE
