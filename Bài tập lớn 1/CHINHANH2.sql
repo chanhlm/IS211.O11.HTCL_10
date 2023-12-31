@@ -557,49 +557,7 @@ SELECT E.EMP_ID, E.EMP_NAME, E.EMP_SALARY FROM CHINHANH1.EMPLOYEES@DIRECTOR_LINK
 
     -- 2.2. Trigger - DB có sử dụng 3 trigger nhưng chỉ trình bày 1 trigger
     -- Khi có thay đổi trong chi tiết hóa đơn thì tính lại tổng tiền cho hóa đơn
-CREATE OR REPLACE TRIGGER UPDATE_TOTAL_PRICE
-BEFORE INSERT OR UPDATE OR DELETE ON CHINHANH2.ORDER_DETAILS
-FOR EACH ROW
-DECLARE
-    v_total_price NUMBER;
-BEGIN
-    -- Tính tổng tiền cho order hiện tại
-    SELECT NVL(SUM(QUANTITY * PRICE), 0) INTO v_total_price
-    FROM CHINHANH2.ORDER_DETAILS
-    WHERE ORDER_ID = :NEW.ORDER_ID;
-
-    SELECT NVL(SUM(QUANTITY * PRICE), 0) INTO old_v_total_price
-    FROM CHINHANH2.ORDER_DETAILS
-    WHERE ORDER_ID = :OLD.ORDER_ID;
-
-    -- Cập nhật tổng tiền vào bảng ORDERS
-    IF INSERTING THEN
-        UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price + :NEW.PRICE* :NEW.QUANTITY
-        WHERE ORDER_ID = :NEW.ORDER_ID;
-    ELSIF UPDATING THEN
-        UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price + :NEW.PRICE*:NEW.QUANTITY
-        WHERE ORDER_ID = :NEW.ORDER_ID;
-
-        UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = old_v_total_price - :OLD.PRICE* :OLD.QUANTITY
-        WHERE ORDER_ID = :OLD.ORDER_ID;
-    ELSE
-        UPDATE CHINHANH2.ORDERS
-        SET TOTAL_PRICE = v_total_price - :OLD.PRICE* :OLD.QUANTITY
-        WHERE ORDER_ID = :NEW.ORDER_ID;
-    END IF;
-END;
-/
-
-select * from chinhanh2.orders WHERE ORDER_ID = 11;
-
-UPDATE CHINHANH2.ORDER_DETAILS
-SET QUANTITY = 10
-WHERE ORDER_ID = 11 AND PRODUCT_ID = 'P1';
-
-select * from chinhanh2.orders WHERE ORDER_ID = 11;
+    -- Làm theo CHINHANH1
 
 -- Yêu cầu 3: Demo các mức cô lập (ISOLATION LEVEL) trong môi trường phân tán và hướng giải quyết
     -- Trong file báo cáo
@@ -707,5 +665,50 @@ FROM
         WHERE BRANCH_NAME = 'Chi nhanh 2'
     ) H ON G.BRANCH_ID = H.BRANCH_ID);
 SELECT *
- FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
+FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
 
+    --Yêu cầu 5: Các đặc điểm mới của Oracle 21c và ứng dụng phân tán trong đặc điểm mới (Option Bonus +2.00)
+    --JSON trong Oracle 21c
+    ALTER TABLE CHINHANH2.ORDERS ADD DETAILS JSON;
+
+    UPDATE CHINHANH2.ORDERS O
+    SET O.DETAILS = (
+        SELECT JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'PRODUCT_ID'       VALUE OD.PRODUCT_ID,
+                'QUANTITY'      VALUE OD.QUANTITY,
+                'PRICE'  VALUE OD.PRICE
+            )
+        )
+        FROM CHINHANH2.ORDER_DETAILS OD
+        WHERE OD.ORDER_ID = O.ORDER_ID
+        GROUP BY OD.ORDER_ID
+    );
+
+    -----Query JSON 2 Liệt kê top 2 sản phẩm bán chạy nhất của 2 chi nhánh 
+    SELECT PRODUCT_NAME, PRODUCT_ID, SUM(TOTAL_PRICE) AS "Tổng bán được"
+    FROM (SELECT P.PRODUCT_NAME, JT.PRODUCT_ID, SUM(JT.PRICE) as total_price
+	        FROM CHINHANH2.ORDERS O, CHINHANH2.PRODUCTS P
+	        CROSS JOIN JSON_TABLE(O.DETAILS, '$[*]'
+        	    COLUMNS (
+            		PRICE NUMBER PATH '$.PRICE',
+            		PRODUCT_ID VARCHAR2(6) PATH '$.PRODUCT_ID'
+        	    )
+   	        ) JT
+    	    WHERE JT.PRODUCT_ID = P.PRODUCT_ID
+    	    GROUP BY P.PRODUCT_NAME, JT.PRODUCT_ID
+	        UNION ALL
+	        SELECT P2.PRODUCT_NAME, JT2.PRODUCT_ID, SUM(JT2.PRICE) AS TOTAL_PRICE
+    	    FROM CHINHANH1.ORDERS@DIRECTOR_LINK O2, CHINHANH1.PRODUCTS@DIRECTOR_LINK P2
+    	    CROSS JOIN JSON_TABLE(O2.DETAILS, '$[*]'
+        	    COLUMNS (
+            	    PRICE NUMBER PATH '$.PRICE',
+            	    PRODUCT_ID VARCHAR2(6) PATH '$.PRODUCT_ID'
+        	    )
+    	    ) JT2
+	        WHERE JT2.PRODUCT_ID = P2.PRODUCT_ID
+    	    GROUP BY P2.PRODUCT_NAME, JT2.PRODUCT_ID
+	    )
+	GROUP BY PRODUCT_NAME, PRODUCT_ID
+	ORDER BY SUM(TOTAL_PRICE) DESC
+	FETCH NEXT 2 ROWS ONLY;
