@@ -31,3 +31,5 @@
 * Demo một ứng dụng Application Windows hoặc Web sử dụng môn học CSDL phân tán
 * Chương trình tuỳ vào theo mức độ ứng dụng tối đa là  Bonus +2.00 điểm
 * Viết báo cáo và quay video BTL1
+
+### Demo: https://drive.google.com/file/d/1V0PKJzYYhAKBryL6VqETGJs1kDSTc6iA/view?usp=sharing
