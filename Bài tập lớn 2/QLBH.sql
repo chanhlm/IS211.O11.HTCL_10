@@ -35,17 +35,3 @@ CREATE TABLE CTHD(
     SL		INT,
     CONSTRAINT PK_CTHD PRIMARY KEY(SOHD, MASP)
 )
-
-
---Query
---1. Tìm các sản phẩm có tên là 'But chi'
-from 'Sanphams'
-where tensp = 'But chi'
-
---2. Tìm nhân viên có tên là 'Nguyen Van A'
-from 'Nhanviens'
-where hoten = 'Nguyen Van A'
-
---3. Tìm các sản phẩm trong tên có chữ 'GIAY'
-from 'Sanphams'
-where search(tensp, "GIAY")

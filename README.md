@@ -17,6 +17,3 @@ STT | MSSV | Họ tên
 3 | 21521586 | Lê Thị Lệ Trúc
 4 | 19521528 | Đào Huy Hoàng
 
-
-* BTL1: nộp ngày 31/12/2023
-* BTL2: nộp ngày 03/01/2024, online, báo cáo ngày 13/01/2024
