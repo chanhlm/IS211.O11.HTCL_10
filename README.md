@@ -17,3 +17,6 @@ STT | MSSV | Họ tên
 3 | 21521586 | Lê Thị Lệ Trúc
 4 | 19521528 | Đào Huy Hoàng
 
+* BÀI TẬP LỚN 1. THIẾT KẾ CƠ SỞ DỮ LIỆU PHÂN TÁN (ORACLE DATABASE)
+* BÀI TẬP LỚN 2. CƠ CHẾ PHÂN TÁN TRONG HỆ QUẢN TRỊ NOSQL (RAVENDB)
+
